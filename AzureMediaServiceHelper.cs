@@ -376,7 +376,10 @@ public class AzureMediaServiceHelper {
 
 		var assetName = (assetNameOptions == AssetNameOptions.KeepOriginalName
 			? fileName
-			: fileName.Replace(" ", "-") + "-" + DateTime.UtcNow.ToString(CultureInfo.InvariantCulture).Replace(" ", "-").Replace(":", "-"));
+			: fileName.Replace(" ", "-") + "-" + DateTime.UtcNow.ToString(CultureInfo.InvariantCulture)
+				.Replace(" ", "-")
+				.Replace(":", "-")
+				.Replace(".", "-"));
 
 		var asset = this.context.Assets.Create(assetName, assetCreationOptions);
 		var assetFile = asset.AssetFiles.Create(fileName);
