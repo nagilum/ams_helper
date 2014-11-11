@@ -5,7 +5,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 
 /// <summary>
 /// Media Services conversion presets.
@@ -236,21 +235,8 @@ public class AzureMediaServiceHelper {
 		if (!Directory.Exists(outputFolder))
 			throw new DirectoryNotFoundException(outputFolder);
 
-		var accessPolicy = this.context.AccessPolicies.Create(asset.Name, TimeSpan.FromDays(30), AccessPermissions.Read);
-		var locator = this.context.Locators.CreateLocator(LocatorType.Sas, asset, accessPolicy);
-		var transfer = new BlobTransferClient {
-			NumberOfConcurrentTransfers = 10,
-			ParallelTransferThreadCount = 10
-		};
-
-		var downloads = new List<Task>();
-
-		foreach (var assetFile in asset.AssetFiles) {
-			var localPath = Path.Combine(outputFolder, assetFile.Name);
-			downloads.Add(assetFile.DownloadAsync(Path.GetFullPath(localPath), transfer, locator, CancellationToken.None));
-		}
-
-		Task.WaitAll(downloads.ToArray());
+		foreach (var assetFile in asset.AssetFiles)
+			assetFile.Download(outputFolder);
 	}
 
 	/// <summary>
