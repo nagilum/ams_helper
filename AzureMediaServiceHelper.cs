@@ -190,6 +190,15 @@ public class AzureMediaServiceHelper {
 	}
 
 	/// <summary>
+	/// List of all assets for the active context.
+	/// </summary>
+	public List<IAsset> Assets {
+		get {
+			return this.context.Assets.ToList();
+		}
+	} 
+
+	/// <summary>
 	/// Initialize a new cloud media context for upload and conversion.
 	/// </summary>
 	/// <param name="accountName">Account name to login as.</param>
@@ -305,14 +314,6 @@ public class AzureMediaServiceHelper {
 
 		return uris;
 	}
-
-	/// <summary>
-	/// List all available assets for the active context.
-	/// </summary>
-	/// <returns>A list of assets.</returns>
-	public List<IAsset> ListAssets() {
-		return this.context.Assets.ToList();
-	} 
 
 	/// <summary>
 	/// Creates an encoding job using the specified preset.
