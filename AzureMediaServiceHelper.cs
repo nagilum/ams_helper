@@ -362,12 +362,14 @@ public class AzureMediaServiceHelper {
 	/// Uploads a file using the given access policy and creates an asset.
 	/// </summary>
 	/// <param name="filePath">File path.</param>
+	/// <param name="assetName">Name of the asset, give null to use filename.</param>
 	/// <param name="accessPolicy">Access policy to utilize.</param>
 	/// <param name="assetCreationOptions">Options for asset creation.</param>
 	/// <param name="assetNameOptions">Options for asset naming.</param>
 	/// <returns>Created asset.</returns>
 	public IAsset UploadFile(
 		string filePath,
+		string assetName,
 		IAccessPolicy accessPolicy,
 		AssetCreationOptions assetCreationOptions = AssetCreationOptions.None,
 		AssetNameOptions assetNameOptions = AssetNameOptions.KeepOriginalName) {
@@ -378,12 +380,13 @@ public class AzureMediaServiceHelper {
 			return null;
 
 		// Create asset.
-		var assetName = (assetNameOptions == AssetNameOptions.KeepOriginalName
-			? fileName
-			: fileName.Replace(" ", "-") + "-" + DateTime.UtcNow.ToString(CultureInfo.InvariantCulture)
-				.Replace(" ", "-")
-				.Replace(":", "-")
-				.Replace(".", "-"));
+		if (assetName == null)
+			assetName = (assetNameOptions == AssetNameOptions.KeepOriginalName
+				? fileName
+				: fileName.Replace(" ", "-") + "-" + DateTime.UtcNow.ToString(CultureInfo.InvariantCulture)
+					.Replace(" ", "-")
+					.Replace(":", "-")
+					.Replace(".", "-"));
 
 		var asset = this.context.Assets.Create(assetName, assetCreationOptions);
 
@@ -395,12 +398,14 @@ public class AzureMediaServiceHelper {
 	/// Uploads a file using the given asset and creates a access policy.
 	/// </summary>
 	/// <param name="filePath">File path.</param>
+	/// <param name="assetName">Name of the asset, give null to use filename.</param>
 	/// <param name="asset">Asset to utilize.</param>
 	/// <param name="accessPolicyDuration">Length of access policy.</param>
 	/// <param name="assetNameOptions">Options for asset naming.</param>
 	/// <returns>Asset.</returns>
 	public IAsset UploadFile(
 		string filePath,
+		string assetName,
 		IAsset asset,
 		TimeSpan accessPolicyDuration,
 		AssetNameOptions assetNameOptions = AssetNameOptions.KeepOriginalName) {
@@ -411,12 +416,13 @@ public class AzureMediaServiceHelper {
 			return null;
 
 		// Create access policy.
-		var assetName = (assetNameOptions == AssetNameOptions.KeepOriginalName
-			? fileName
-			: fileName.Replace(" ", "-") + "-" + DateTime.UtcNow.ToString(CultureInfo.InvariantCulture)
-				.Replace(" ", "-")
-				.Replace(":", "-")
-				.Replace(".", "-"));
+		if (assetName == null)
+			assetName = (assetNameOptions == AssetNameOptions.KeepOriginalName
+				? fileName
+				: fileName.Replace(" ", "-") + "-" + DateTime.UtcNow.ToString(CultureInfo.InvariantCulture)
+					.Replace(" ", "-")
+					.Replace(":", "-")
+					.Replace(".", "-"));
 
 		var accessPolicy = this.context.AccessPolicies.Create(assetName, accessPolicyDuration, AccessPermissions.Write | AccessPermissions.List);
 
@@ -428,12 +434,14 @@ public class AzureMediaServiceHelper {
 	/// Uploads a file by creating an asset and a access policy.
 	/// </summary>
 	/// <param name="filePath">File path.</param>
+	/// <param name="assetName">Name of the asset, give null to use filename.</param>
 	/// <param name="accessPolicyDuration">Length of access policy.</param>
 	/// <param name="assetCreationOptions">Options for asset creation.</param>
 	/// <param name="assetNameOptions">Options for asset naming.</param>
 	/// <returns>Created asset.</returns>
 	public IAsset UploadFile(
 		string filePath,
+		string assetName,
 		TimeSpan accessPolicyDuration,
 		AssetCreationOptions assetCreationOptions = AssetCreationOptions.None,
 		AssetNameOptions assetNameOptions = AssetNameOptions.KeepOriginalName) {
@@ -444,12 +452,13 @@ public class AzureMediaServiceHelper {
 			return null;
 
 		// Create asset.
-		var assetName = (assetNameOptions == AssetNameOptions.KeepOriginalName
-			? fileName
-			: fileName.Replace(" ", "-") + "-" + DateTime.UtcNow.ToString(CultureInfo.InvariantCulture)
-				.Replace(" ", "-")
-				.Replace(":", "-")
-				.Replace(".", "-"));
+		if (assetName == null)
+			assetName = (assetNameOptions == AssetNameOptions.KeepOriginalName
+				? fileName
+				: fileName.Replace(" ", "-") + "-" + DateTime.UtcNow.ToString(CultureInfo.InvariantCulture)
+					.Replace(" ", "-")
+					.Replace(":", "-")
+					.Replace(".", "-"));
 
 		var asset = this.context.Assets.Create(assetName, assetCreationOptions);
 
