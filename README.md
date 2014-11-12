@@ -21,7 +21,7 @@ If not, you can easily pass the needed arguments to the function which will crea
 
 ```csharp
 var uploadAsset = helper.UploadFile(
-	"C:\example\test-video.wmv",
+	@"C:\example\test-video.wmv",
 	Guid.NewGuid().ToString(),
 	null,
 	null,
@@ -43,7 +43,7 @@ To transcode an asset, just pass the asset from the upload to the `TranscodeAsse
 
 ```csharp
 var uploadAsset = helper.UploadFile(
-	"C:\example\test-video.wmv",
+	@"C:\example\test-video.wmv",
 	Guid.NewGuid().ToString(),
 	null,
 	null,
