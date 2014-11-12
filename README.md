@@ -27,6 +27,6 @@ helper.UploadFile(
 
 The following call will create a access policy with a duration of 1 minute, and an asset with the default options, and then upload the file to that asset.
 
-To see a list of all assets, just use the `helper.Assets` collection member.
+To see a list of all assets, locators, and access policies, just use the `helper.Assets`, `helper.Locators`, and `helper.AccessPolicies` collections respectivly.
 
 There are also functions to manage the asset in other ways.
