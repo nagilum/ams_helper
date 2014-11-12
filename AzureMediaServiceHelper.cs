@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading;
 
 /// <summary>
-/// Media Services conversion presets.
+/// Azure Media Services conversion presets.
 /// </summary>
 public class AzureMediaServicePresets {
 	/// <summary>
@@ -171,7 +171,7 @@ public class AzureMediaServicePresets {
 }
 
 /// <summary>
-/// Helper class for managing asset on the Azure cloud.
+/// Helper class for managing assets using the Azure Media Services.
 /// </summary>
 public class AzureMediaServiceHelper {
 	/// <summary>
