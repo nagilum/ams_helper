@@ -12,3 +12,21 @@ const string accountKey = "your-account-key";
 
 var helper = new AzureMediaServiceHelper(accountName, accountKey);
 ```
+
+## Upload a file.
+
+There are a few options available when uploading a file.
+If you already have an asset ready, you can use that, which also goes for the access policy.
+If not, you can easily pass the needed arguments to the function which will create both the asset and access policy for you.
+
+```csharp
+helper.UploadFile(
+	"C:\example\test-video.wmv",
+	new TimeSpan(0, 1, 0));
+```
+
+The following call will create a access policy with a duration of 1 minute, and an asset with the default options, and then upload the file to that asset.
+
+To see a list of all assets, just use the `helper.Assets` collection member.
+
+There are also functions to manage the asset in other ways.
