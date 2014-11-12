@@ -210,21 +210,7 @@ public class AzureMediaServiceHelper {
 	}
 
 	/// <summary>
-	/// Delete an asset.
-	/// </summary>
-	/// <param name="asset">Source asset.</param>
-	public void DeleteAsset(IAsset asset) {
-		if (asset == null)
-			throw new Exception("Asset cannot be null.");
-
-		foreach (var locator in asset.Locators)
-			locator.Delete();
-
-		asset.Delete();
-	}
-
-	/// <summary>
-	/// Download asset to local folder.
+	/// Download all files attached to an asset.
 	/// </summary>
 	/// <param name="asset">Source asset.</param>
 	/// <param name="outputFolder">Folder to store file(s) in.</param>
@@ -240,65 +226,62 @@ public class AzureMediaServiceHelper {
 	}
 
 	/// <summary>
-	/// Builds a full download URL for first file in the asset.
+	/// Download a single asset file.
 	/// </summary>
-	/// <param name="asset">Source asset.</param>
-	/// <returns>Download URL.</returns>
-	public string GetAssetFirstFileURL(IAsset asset) {
-		if (asset == null)
-			throw new Exception("Asset cannot be null.");
-
-		var policy = this.context.AccessPolicies.Create(
-			"30 day policy",
-			TimeSpan.FromDays(30),
-			AccessPermissions.Read);
-
-		var locator = this.context.Locators.CreateLocator(
-			LocatorType.Sas,
-			asset,
-			policy,
-			DateTime.UtcNow.AddMinutes(-5));
-
-		var assetFile = asset.AssetFiles.FirstOrDefault();
-
+	/// <param name="assetFile">Asset file to download.</param>
+	/// <param name="outputFolder">Folder to store file in.</param>
+	public void DownloadAssetFile(IAssetFile assetFile, string outputFolder) {
 		if (assetFile == null)
-			return null;
+			throw new Exception("Asset file cannot be null.");
 
-		var uri = new UriBuilder(locator.Path);
-		uri.Path += "/" + assetFile.Name;
+		if (!Directory.Exists(outputFolder))
+			throw new DirectoryNotFoundException(outputFolder);
 
-		return uri.Uri.AbsoluteUri;
+		assetFile.Download(outputFolder);
 	}
 
 	/// <summary>
-	/// Builds full download URL's for all files in the asset.
+	/// Retrieve the download file URL for an asset file.
 	/// </summary>
-	/// <param name="asset">Source asset.</param>
-	/// <returns>List of download URL's.</returns>
-	public List<string> GetAssetAllFilesURL(IAsset asset) {
-		if (asset == null)
-			throw new Exception("Asset cannot be null.");
+	/// <param name="assetFile">Asset file.</param>
+	/// <param name="accessPolicy">Access policy to use.</param>
+	/// <returns>Download URL.</returns>
+	public string GetAssetFileURL(IAssetFile assetFile, IAccessPolicy accessPolicy) {
+		if (assetFile == null)
+			throw new Exception("Asset File cannot be null.");
 
-		var policy = this.context.AccessPolicies.Create(
-			"30 day policy",
-			TimeSpan.FromDays(30),
-			AccessPermissions.Read);
-
+		// Create locator.
 		var locator = this.context.Locators.CreateLocator(
 			LocatorType.Sas,
-			asset,
-			policy,
+			assetFile.Asset,
+			accessPolicy,
 			DateTime.UtcNow.AddMinutes(-5));
 
-		var uris = new List<string>();
+		// Create and return URi.
+		var builder = new UriBuilder(locator.Path);
+		builder.Path += "/" + assetFile.Name;
 
-		foreach (var assetFile in asset.AssetFiles) {
-			var uri = new UriBuilder(locator.Path);
-			uri.Path += "/" + assetFile.Name;
-			uris.Add(uri.Uri.AbsoluteUri);
-		}
+		return builder.Uri.AbsoluteUri;
+	}
 
-		return uris;
+	/// <summary>
+	/// Retrieve the download file URL for an asset file.
+	/// </summary>
+	/// <param name="assetFile">Asset file.</param>
+	/// <param name="accessPolicyDuration">Length of access policy.</param>
+	/// <returns>Download URL.</returns>
+	public string GetAssetFileURL(IAssetFile assetFile, TimeSpan accessPolicyDuration) {
+		if (assetFile == null)
+			throw new Exception("Asset File cannot be null.");
+
+		// Create access policy.
+		var accessPolicy = this.context.AccessPolicies.Create(
+			accessPolicyDuration + " policy",
+			accessPolicyDuration,
+			AccessPermissions.Read);
+
+		// Forward to function.
+		return this.GetAssetFileURL(assetFile, accessPolicy);
 	}
 
 	/// <summary>
@@ -341,25 +324,49 @@ public class AzureMediaServiceHelper {
 	}
 
 	/// <summary>
-	/// Creates an asset and uploads a single file.
+	/// Uploads a file using the given asset and access policy.
 	/// </summary>
 	/// <param name="filePath">File path.</param>
-	/// <param name="assetCreationOptions">Options for asset creation.</param>
-	/// <param name="assetNameOptions">Options for asset naming.</param>
-	/// <returns>Created asset.</returns>
-	public IAsset UploadFile(
-		string filePath,
-		AssetCreationOptions assetCreationOptions = AssetCreationOptions.None,
-		AssetNameOptions assetNameOptions = AssetNameOptions.KeepOriginalName) {
-
-		if (!File.Exists(filePath))
-			throw new FileNotFoundException(filePath);
-
+	/// <param name="asset">Asset to utilize.</param>
+	/// <param name="accessPolicy">Access policy to utilize.</param>
+	/// <returns>Asset.</returns>
+	public IAsset UploadFile(string filePath, IAsset asset, IAccessPolicy accessPolicy) {
+		// Get filename from path.
 		var fileName = Path.GetFileName(filePath);
 
 		if (string.IsNullOrWhiteSpace(fileName))
 			return null;
 
+		// Upload the file.
+		var assetFile = asset.AssetFiles.Create(fileName);
+		assetFile.Upload(filePath);
+
+		this.context.Locators.CreateLocator(LocatorType.Sas, asset, accessPolicy);
+
+		// Done.
+		return asset;
+	}
+
+	/// <summary>
+	/// Uploads a file using the given access policy and creates an asset.
+	/// </summary>
+	/// <param name="filePath">File path.</param>
+	/// <param name="accessPolicy">Access policy to utilize.</param>
+	/// <param name="assetCreationOptions">Options for asset creation.</param>
+	/// <param name="assetNameOptions">Options for asset naming.</param>
+	/// <returns>Created asset.</returns>
+	public IAsset UploadFile(
+		string filePath,
+		IAccessPolicy accessPolicy,
+		AssetCreationOptions assetCreationOptions = AssetCreationOptions.None,
+		AssetNameOptions assetNameOptions = AssetNameOptions.KeepOriginalName) {
+		// Get filename from path.
+		var fileName = Path.GetFileName(filePath);
+
+		if (string.IsNullOrWhiteSpace(fileName))
+			return null;
+
+		// Create asset.
 		var assetName = (assetNameOptions == AssetNameOptions.KeepOriginalName
 			? fileName
 			: fileName.Replace(" ", "-") + "-" + DateTime.UtcNow.ToString(CultureInfo.InvariantCulture)
@@ -368,15 +375,77 @@ public class AzureMediaServiceHelper {
 				.Replace(".", "-"));
 
 		var asset = this.context.Assets.Create(assetName, assetCreationOptions);
-		var assetFile = asset.AssetFiles.Create(fileName);
-		var accessPolicy = this.context.AccessPolicies.Create(assetName, TimeSpan.FromDays(30), AccessPermissions.Write | AccessPermissions.List);
-		var locator = this.context.Locators.CreateLocator(LocatorType.Sas, asset, accessPolicy);
 
-		assetFile.Upload(filePath);
+		// Forward to common function.
+		return this.UploadFile(filePath, asset, accessPolicy);
+	}
 
-		locator.Delete();
-		accessPolicy.Delete();
+	/// <summary>
+	/// Uploads a file using the given asset and creates a access policy.
+	/// </summary>
+	/// <param name="filePath">File path.</param>
+	/// <param name="asset">Asset to utilize.</param>
+	/// <param name="accessPolicyDuration">Length of access policy.</param>
+	/// <param name="assetNameOptions">Options for asset naming.</param>
+	/// <returns>Asset.</returns>
+	public IAsset UploadFile(
+		string filePath,
+		IAsset asset,
+		TimeSpan accessPolicyDuration,
+		AssetNameOptions assetNameOptions = AssetNameOptions.KeepOriginalName) {
+		// Get filename from path.
+		var fileName = Path.GetFileName(filePath);
 
-		return asset;
+		if (string.IsNullOrWhiteSpace(fileName))
+			return null;
+
+		// Create access policy.
+		var assetName = (assetNameOptions == AssetNameOptions.KeepOriginalName
+			? fileName
+			: fileName.Replace(" ", "-") + "-" + DateTime.UtcNow.ToString(CultureInfo.InvariantCulture)
+				.Replace(" ", "-")
+				.Replace(":", "-")
+				.Replace(".", "-"));
+
+		var accessPolicy = this.context.AccessPolicies.Create(assetName, accessPolicyDuration, AccessPermissions.Write | AccessPermissions.List);
+
+		// Forward to common function.
+		return this.UploadFile(filePath, asset, accessPolicy);
+	}
+
+	/// <summary>
+	/// Uploads a file by creating an asset and a access policy.
+	/// </summary>
+	/// <param name="filePath">File path.</param>
+	/// <param name="accessPolicyDuration">Length of access policy.</param>
+	/// <param name="assetCreationOptions">Options for asset creation.</param>
+	/// <param name="assetNameOptions">Options for asset naming.</param>
+	/// <returns>Created asset.</returns>
+	public IAsset UploadFile(
+		string filePath,
+		TimeSpan accessPolicyDuration,
+		AssetCreationOptions assetCreationOptions = AssetCreationOptions.None,
+		AssetNameOptions assetNameOptions = AssetNameOptions.KeepOriginalName) {
+		// Get filename from path.
+		var fileName = Path.GetFileName(filePath);
+
+		if (string.IsNullOrWhiteSpace(fileName))
+			return null;
+
+		// Create asset.
+		var assetName = (assetNameOptions == AssetNameOptions.KeepOriginalName
+			? fileName
+			: fileName.Replace(" ", "-") + "-" + DateTime.UtcNow.ToString(CultureInfo.InvariantCulture)
+				.Replace(" ", "-")
+				.Replace(":", "-")
+				.Replace(".", "-"));
+
+		var asset = this.context.Assets.Create(assetName, assetCreationOptions);
+
+		// Create access policy.
+		var accessPolicy = this.context.AccessPolicies.Create(assetName, accessPolicyDuration, AccessPermissions.Write | AccessPermissions.List);
+
+		// Forward to common function.
+		return this.UploadFile(filePath, asset, accessPolicy);
 	}
 }
