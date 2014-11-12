@@ -52,7 +52,9 @@ var uploadAsset = helper.UploadFile(
 	AssetCreationOptions.None,
 	AzureMediaServiceHelper.AssetNameOptions.KeepOriginalName);
 
-var transcodeAsset = helper.TranscodeAsset(uploadAsset, AzureMediaServicePresets.Video.H264Broadband720p);
+var transcodeAsset = helper.TranscodeAsset(
+	uploadAsset,
+	AzureMediaServicePresets.Video.H264Broadband720p);
 ```
 
 This example will upload a .wmv file and transcode into a 720p MP4 file which will be stored in its own asset.
