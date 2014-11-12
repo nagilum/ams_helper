@@ -13,7 +13,7 @@ const string accountKey = "your-account-key";
 var helper = new AzureMediaServiceHelper(accountName, accountKey);
 ```
 
-## Upload a file.
+## Upload a File.
 
 There are a few options available when uploading a file.
 If you already have an asset ready, you can use that, which also goes for the access policy.
@@ -40,4 +40,16 @@ var uploadAsset = helper.UploadFile("C:\example\test-video.wmv", new TimeSpan(1,
 var transcodeAsset = helper.TranscodeAsset(uploadAsset, AzureMediaServicePresets.Video.H264Broadband720p);
 ```
 
-This example will upload a .wmv file and transcode into a 720p MP4 file.
+This example will upload a .wmv file and transcode into a 720p MP4 file which will be stored in its own asset.
+
+## Download Asset Files
+
+To download files from an asset you can either download all in one go, or cycle asset files and download each separatly.
+
+```csharp
+// This will download all files in the asset to the given folder.
+helper.DownloadAsset(asset, @"C:\example\download");
+
+// This will download a single asset file to the given folder.
+helper.DownloadAssetFile(assetFile, @"C:\example\download");
+```
