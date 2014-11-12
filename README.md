@@ -29,4 +29,15 @@ The following call will create a access policy with a duration of 1 minute, and 
 
 To see a list of all assets, locators, and access policies, just use the `helper.Assets`, `helper.Locators`, and `helper.AccessPolicies` collections respectivly.
 
-There are also functions to manage the asset in other ways.
+There are also functions to manage the asset in other ways such as asset file download, direct URL access, and transcoding.
+
+## Transcoding
+
+To transcode an asset, just pass the asset from the upload to the `TranscodeAsset` function along with the preset to use.
+
+```csharp
+var uploadAsset = helper.UploadFile("C:\example\test-video.wmv", new TimeSpan(1, 0, 0));
+var transcodeAsset = helper.TranscodeAsset(uploadAsset, AzureMediaServicePresets.Video.H264Broadband720p);
+```
+
+This example will upload a .wmv file and transcode into a 720p MP4 file.
