@@ -233,7 +233,7 @@ public class AzureMediaServiceHelper {
 			throw new DirectoryNotFoundException(outputFolder);
 
 		foreach (var assetFile in asset.AssetFiles)
-			assetFile.Download(outputFolder);
+			this.DownloadAssetFile(assetFile, outputFolder);
 	}
 
 	/// <summary>
@@ -248,7 +248,7 @@ public class AzureMediaServiceHelper {
 		if (!Directory.Exists(outputFolder))
 			throw new DirectoryNotFoundException(outputFolder);
 
-		assetFile.Download(outputFolder);
+		assetFile.Download(Path.Combine(outputFolder, assetFile.Name));
 	}
 
 	/// <summary>
