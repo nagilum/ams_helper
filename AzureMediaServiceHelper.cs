@@ -1,6 +1,5 @@
 ﻿using Microsoft.WindowsAzure.MediaServices.Client;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -189,13 +188,25 @@ public class AzureMediaServiceHelper {
 	}
 
 	/// <summary>
-	/// List of all assets for the active context.
+	/// Collection of all assets for active context.
 	/// </summary>
-	public List<IAsset> Assets {
-		get {
-			return this.context.Assets.ToList();
-		}
-	} 
+	public AssetBaseCollection Assets {
+		get { return this.context.Assets; }
+	}
+
+	/// <summary>
+	/// Collection of all locators for active context.
+	/// </summary>
+	public LocatorBaseCollection Locators {
+		get { return this.context.Locators; }
+	}
+
+	/// <summary>
+	/// Collection of all access policies for active context.
+	/// </summary>
+	public AccessPolicyBaseCollection AccessPolicies {
+		get { return this.context.AccessPolicies; }
+	}
 
 	/// <summary>
 	/// Initialize a new cloud media context for upload and conversion.
