@@ -309,8 +309,11 @@ public class AzureMediaServiceHelper {
 			throw new Exception("Preset cannot be null.");
 
 		var job = this.context.Jobs.Create(preset);
+
 		var processor =
-			this.context.MediaProcessors.Where(p => p.Name.Contains("Media Encoder"))
+			this.context.MediaProcessors
+				.Where(p => p.Name.Contains("Media Encoder"))
+				.ToList()
 				.OrderBy(p => new Version(p.Version))
 				.LastOrDefault();
 
@@ -359,92 +362,26 @@ public class AzureMediaServiceHelper {
 	}
 
 	/// <summary>
-	/// Uploads a file using the given access policy and creates an asset.
-	/// </summary>
-	/// <param name="filePath">File path.</param>
-	/// <param name="assetName">Name of the asset, give null to use filename.</param>
-	/// <param name="accessPolicy">Access policy to utilize.</param>
-	/// <param name="assetCreationOptions">Options for asset creation.</param>
-	/// <param name="assetNameOptions">Options for asset naming.</param>
-	/// <returns>Created asset.</returns>
-	public IAsset UploadFile(
-		string filePath,
-		string assetName,
-		IAccessPolicy accessPolicy,
-		AssetCreationOptions assetCreationOptions = AssetCreationOptions.None,
-		AssetNameOptions assetNameOptions = AssetNameOptions.KeepOriginalName) {
-		// Get filename from path.
-		var fileName = Path.GetFileName(filePath);
-
-		if (string.IsNullOrWhiteSpace(fileName))
-			return null;
-
-		// Create asset.
-		if (assetName == null)
-			assetName = (assetNameOptions == AssetNameOptions.KeepOriginalName
-				? fileName
-				: fileName.Replace(" ", "-") + "-" + DateTime.UtcNow.ToString(CultureInfo.InvariantCulture)
-					.Replace(" ", "-")
-					.Replace(":", "-")
-					.Replace(".", "-"));
-
-		var asset = this.context.Assets.Create(assetName, assetCreationOptions);
-
-		// Forward to common function.
-		return this.UploadFile(filePath, asset, accessPolicy);
-	}
-
-	/// <summary>
-	/// Uploads a file using the given asset and creates a access policy.
-	/// </summary>
-	/// <param name="filePath">File path.</param>
-	/// <param name="assetName">Name of the asset, give null to use filename.</param>
-	/// <param name="asset">Asset to utilize.</param>
-	/// <param name="accessPolicyDuration">Length of access policy.</param>
-	/// <param name="assetNameOptions">Options for asset naming.</param>
-	/// <returns>Asset.</returns>
-	public IAsset UploadFile(
-		string filePath,
-		string assetName,
-		IAsset asset,
-		TimeSpan accessPolicyDuration,
-		AssetNameOptions assetNameOptions = AssetNameOptions.KeepOriginalName) {
-		// Get filename from path.
-		var fileName = Path.GetFileName(filePath);
-
-		if (string.IsNullOrWhiteSpace(fileName))
-			return null;
-
-		// Create access policy.
-		if (assetName == null)
-			assetName = (assetNameOptions == AssetNameOptions.KeepOriginalName
-				? fileName
-				: fileName.Replace(" ", "-") + "-" + DateTime.UtcNow.ToString(CultureInfo.InvariantCulture)
-					.Replace(" ", "-")
-					.Replace(":", "-")
-					.Replace(".", "-"));
-
-		var accessPolicy = this.context.AccessPolicies.Create(assetName, accessPolicyDuration, AccessPermissions.Write | AccessPermissions.List);
-
-		// Forward to common function.
-		return this.UploadFile(filePath, asset, accessPolicy);
-	}
-
-	/// <summary>
 	/// Uploads a file by creating an asset and a access policy.
 	/// </summary>
 	/// <param name="filePath">File path.</param>
 	/// <param name="assetName">Name of the asset, give null to use filename.</param>
+	/// <param name="asset">Asset to utilize.</param>
+	/// <param name="accessPolicy">Access policy to utilize.</param>
 	/// <param name="accessPolicyDuration">Length of access policy.</param>
+	/// <param name="accessPolicyName">Name of the access policy to create.</param>
 	/// <param name="assetCreationOptions">Options for asset creation.</param>
 	/// <param name="assetNameOptions">Options for asset naming.</param>
 	/// <returns>Created asset.</returns>
 	public IAsset UploadFile(
 		string filePath,
 		string assetName,
+		IAsset asset,
+		IAccessPolicy accessPolicy,
 		TimeSpan accessPolicyDuration,
-		AssetCreationOptions assetCreationOptions = AssetCreationOptions.None,
-		AssetNameOptions assetNameOptions = AssetNameOptions.KeepOriginalName) {
+		string accessPolicyName,
+		AssetCreationOptions assetCreationOptions,
+		AssetNameOptions assetNameOptions) {
 		// Get filename from path.
 		var fileName = Path.GetFileName(filePath);
 
@@ -460,10 +397,19 @@ public class AzureMediaServiceHelper {
 					.Replace(":", "-")
 					.Replace(".", "-"));
 
-		var asset = this.context.Assets.Create(assetName, assetCreationOptions);
+		if (asset == null)
+			asset = this.context.Assets.Create(assetName, assetCreationOptions);
 
 		// Create access policy.
-		var accessPolicy = this.context.AccessPolicies.Create(assetName, accessPolicyDuration, AccessPermissions.Write | AccessPermissions.List);
+		if (accessPolicy == null) {
+			if (accessPolicyName == null)
+				accessPolicyName = assetName;
+
+			accessPolicy = this.context.AccessPolicies.Create(
+				accessPolicyName,
+				accessPolicyDuration,
+				AccessPermissions.Write | AccessPermissions.List);
+		}
 
 		// Forward to common function.
 		return this.UploadFile(filePath, asset, accessPolicy);
