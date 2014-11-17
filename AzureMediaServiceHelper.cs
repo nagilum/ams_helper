@@ -308,7 +308,7 @@ public class AzureMediaServiceHelper {
 		var manifest = asset.AssetFiles.FirstOrDefault(f => f.Name.EndsWith(".ism"));
 
 		if (manifest == null)
-			throw new FileNotFoundException("Cannot find manifest file inside asset.");
+			return null;
 
 		// Create locator.
 		var locator = this.context.Locators.CreateLocator(
