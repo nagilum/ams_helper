@@ -296,6 +296,55 @@ public class AzureMediaServiceHelper {
 	}
 
 	/// <summary>
+	/// Retrieve the streaming URL for an asset file.
+	/// </summary>
+	/// <param name="asset">Asset.</param>
+	/// <param name="accessPolicy">Access policy to use.</param>
+	/// <returns>Streaming URL.</returns>
+	public string GetAssetFileStreamingURL(IAsset asset, IAccessPolicy accessPolicy) {
+		if (asset == null)
+			throw new Exception("Asset cannot be null.");
+
+		var manifest = asset.AssetFiles.FirstOrDefault(f => f.Name.EndsWith(".ism"));
+
+		if (manifest == null)
+			throw new FileNotFoundException("Cannot find manifest file inside asset.");
+
+		// Create locator.
+		var locator = this.context.Locators.CreateLocator(
+			LocatorType.OnDemandOrigin,
+			asset,
+			accessPolicy,
+			DateTime.UtcNow.AddMinutes(-5));
+
+		// Return URL.
+		return
+			locator.Path +
+			manifest.Name +
+			"/Manifest";
+	}
+
+	/// <summary>
+	/// Retrieve the streaming URL for an asset file.
+	/// </summary>
+	/// <param name="asset">Asset.</param>
+	/// <param name="accessPolicyDuration">Length of access policy.</param>
+	/// <returns>Streaming URL.</returns>
+	public string GetAssetFileStreamingURL(IAsset asset, TimeSpan accessPolicyDuration) {
+		if (asset == null)
+			throw new Exception("Asset cannot be null.");
+
+		// Create access policy.
+		var accessPolicy = this.context.AccessPolicies.Create(
+			accessPolicyDuration + " policy",
+			accessPolicyDuration,
+			AccessPermissions.Read);
+
+		// Forward to function.
+		return this.GetAssetFileStreamingURL(asset, accessPolicy);
+	}
+
+	/// <summary>
 	/// Creates an encoding job using the specified preset.
 	/// </summary>
 	/// <param name="asset">Source asset.</param>
