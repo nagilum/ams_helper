@@ -305,7 +305,7 @@ public class AzureMediaServiceHelper {
 		if (asset == null)
 			throw new Exception("Asset cannot be null.");
 
-		var manifest = asset.AssetFiles.FirstOrDefault(f => f.Name.EndsWith(".ism"));
+		var manifest = asset.AssetFiles.ToList().FirstOrDefault(f => f.Name.EndsWith(".ism"));
 
 		if (manifest == null)
 			return null;
